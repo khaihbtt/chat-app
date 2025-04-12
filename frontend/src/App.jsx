@@ -18,7 +18,10 @@ const App = () => {
     checkAuth();
   }, [checkAuth]);
 
-  console.log({ authUser });
+  // Gán theme vào thẻ <html>
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   if (isCheckingAuth && !authUser)
     return (
@@ -27,7 +30,7 @@ const App = () => {
       </div>
     );
   return (
-    <div data-theme={theme}>
+    <div>
       <Navbar />
 
       <Routes>
@@ -43,7 +46,7 @@ const App = () => {
           path="/login"
           element={!authUser ? <LoginPage /> : <Navigate to="/" />}
         />
-        <Route path="/setting" element={<SettingsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route
           path="/profile"
           element={authUser ? <ProfilePage /> : <Navigate to="/login" />}
