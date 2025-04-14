@@ -1,5 +1,7 @@
-import cloudinary from "../lib/cloudinary.js";
 import User from "../models/user.model.js";
+import Message from "../models/message.model.js";
+
+import cloudinary from "../lib/cloudinary.js";
 
 export const getUsersForSidebar = async (req, res) => {
   try {
@@ -10,23 +12,27 @@ export const getUsersForSidebar = async (req, res) => {
 
     res.status(200).json(filteredUsers);
   } catch (error) {
-    console.log("Error getUsersForSidebar", error.message);
-    res.status(500).json({ error: "Lỗi server" });
+    console.error("Error in getUsersForSidebar: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
 export const getMessage = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
-    const senderId = await MessageChannel.find({
+    const myId = req.user._id;
+
+    const messages = await Message.find({
       $or: [
-        { senderId: senderId, receiverId: userToChatId },
-        { senderId: userToChatId, receiverId: senderId },
+        { senderId: myId, receiverId: userToChatId },
+        { senderId: userToChatId, receiverId: myId },
       ],
     });
+
+    res.status(200).json(messages);
   } catch (error) {
-    console.log("Error getMessage", error.message);
-    res.status(500).json({ error: "Lỗi server" });
+    console.log("Error in getMessages controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -38,6 +44,7 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
+      // Upload base64 image to cloudinary
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
@@ -50,9 +57,15 @@ export const sendMessage = async (req, res) => {
     });
 
     await newMessage.save();
+
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
+
     res.status(201).json(newMessage);
   } catch (error) {
-    console.log("Error sendMessage", error.message);
-    res.status(500).json({ error: "Lỗi server" });
+    console.log("Error in sendMessage controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
