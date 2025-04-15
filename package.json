@@ -1,0 +1,12 @@
+{
+  "name": "chat-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "yarn --cwd backend install && yarn --cwd frontend install && yarn --cwd frontend build",
+    "start": "yarn --cwd backend start"
+  },
+  "repository": "https://github.com/khaihbtt/chat-app.git",
+  "author": "khaihbtt <90823991+khaihbtt@users.noreply.github.com>",
+  "license": "MIT"
+}
